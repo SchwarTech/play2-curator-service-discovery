@@ -3,6 +3,5 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index2()
-GET     /idx                           controllers.Application.index()
+GET     /                           controllers.Application.index()
 GET     /api/v1/echo                controllers.Application.echo()
