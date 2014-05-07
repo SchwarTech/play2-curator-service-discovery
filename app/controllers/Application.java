@@ -1,7 +1,8 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import helpers.ServiceDiscoveryHelper;
+import com.schwartech.curator.discovery.CuratorDiscovery;
+import com.schwartech.curator.discovery.CuratorDiscoveryPlugin;
 import models.InstanceDetails;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -21,6 +22,8 @@ import java.util.Collection;
 
 public class Application extends Controller {
 
+    public static String queryServiceName = "DEV:V1:ApacheCuratorXDiscovery";
+
     public static Result echo() {
         ObjectNode result = Json.newObject();
         result.put("status", "OK");
@@ -29,8 +32,21 @@ public class Application extends Controller {
         return ok(result);
     }
 
+    public static Result index2() {
+        ServiceInstance instance = CuratorDiscovery.getService(queryServiceName);
+        Logger.info("index2.instance: " + instance);
+        if (instance == null) {
+            return ok("NONE FOUND");
+        } else {
+            return ok(instance.buildUriSpec());
+        }
+    }
+
     public static Result index() {
-        String queryServiceName = "DEV:V1:ApacheCuratorXDiscovery";
+
+//        String zooServers = Configuration.root()
+//                .getConfig("curator.discovery")
+//                .getString("zooServers", "localhost:2181");
 
         // This shows how to query all the instances in service discovery
         StringBuilder output = new StringBuilder("Searching for: " + queryServiceName + "\n");
@@ -39,11 +55,18 @@ public class Application extends Controller {
         CuratorFramework client = null;
         try
         {
-            client = CuratorFrameworkFactory.newClient(ServiceDiscoveryHelper.server.getConnectString(), new ExponentialBackoffRetry(1000, 3));
+            String zooServers = "localhost:2181";
+
+            client = CuratorFrameworkFactory.newClient(zooServers, new ExponentialBackoffRetry(1000, 3));
             client.start();
 
             JsonInstanceSerializer<InstanceDetails> serializer = new JsonInstanceSerializer<InstanceDetails>(InstanceDetails.class);
-            serviceDiscovery = ServiceDiscoveryBuilder.builder(InstanceDetails.class).client(client).basePath(ServiceDiscoveryHelper.PATH).serializer(serializer).build();
+            serviceDiscovery = ServiceDiscoveryBuilder
+                    .builder(InstanceDetails.class)
+                    .client(client)
+                    .basePath(CuratorDiscovery.getPath())
+                    .serializer(serializer)
+                    .build();
             serviceDiscovery.start();
 
             Collection<ServiceInstance<InstanceDetails>> instances = serviceDiscovery.queryForInstances(queryServiceName);
@@ -77,7 +100,8 @@ public class Application extends Controller {
     }
 
     public static String callService(String uri) {
-        F.Promise<WS.Response> results = WS.url(uri + "/api/v1/echo").get();
-        return results.get(1500).getBody();
+//        F.Promise<WS.Response> results = WS.url(uri + "/api/v1/echo").get();
+//        return results.get(1500).getBody();
+        return "*** NA ** JSS ***";
     }
 }

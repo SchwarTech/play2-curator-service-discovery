@@ -1,5 +1,6 @@
 package com.schwartech.curator.discovery;
 
+import org.apache.curator.x.discovery.ServiceInstance;
 import play.Application;
 import play.Configuration;
 import play.Play;
@@ -30,12 +31,19 @@ public class CuratorDiscovery {
         return plugin;
     }
 
-    public static String register(String serviceName, String description) {
-        return getPlugin().register(serviceName, description);
+    public static ServiceInstance getService(String queryServiceName) {
+        return getPlugin().getService(queryServiceName);
     }
 
-    public static boolean unregister(String serviceName, String id) {
-        return getPlugin().unregister(serviceName, id);
+    public static String getPath() {
+        return getPlugin().getServicePath();
     }
+//    public static String register(String serviceName, String description) {
+//        return getPlugin().register(serviceName, description);
+//    }
+//
+//    public static boolean unregister(String serviceName, String id) {
+//        return getPlugin().unregister(serviceName, id);
+//    }
 
 }
