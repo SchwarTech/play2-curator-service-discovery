@@ -9,6 +9,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
+import org.apache.curator.x.discovery.strategies.RandomStrategy;
 import org.apache.curator.x.discovery.strategies.RoundRobinStrategy;
 import play.Application;
 import play.Configuration;
@@ -64,11 +65,15 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             serviceDescription = curatorDiscoveryConf.getString("description", "Play2 Curator Service");
             servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
+
+            int port = Configuration.root().getInt("http.port", 9000);
+
             Logger.info("CuratorServiceDiscoveryPlugin Settings:");
             Logger.info(" * serviceName: " + serviceName);
             Logger.info(" * serviceDescription: " + serviceDescription);
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
+            Logger.info(" * http.port: " + port);
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
@@ -84,7 +89,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             Logger.info("Curator Discovery settings found.  ZooKeeper servers: " + zooServers);
             if (autoRegister) {
-                register(serviceName, serviceDescription, 9000);
+                register(serviceName, serviceDescription, port);
             }
         }
     }
@@ -119,7 +124,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
         try {
             serviceDiscovery.start();
         } catch (Exception e) {
-            Logger.error("Error getting discovery discovery", e);
+            Logger.error("Error getting discovery", e);
         }
 
         return serviceDiscovery;
@@ -151,12 +156,13 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             ServiceInstanceBuilder builder = ServiceInstance.<InstanceDetails>builder()
                     .name(serviceName)
                     .payload(new InstanceDetails(description))
-//                    .address("127.0.0.1")
                     .port(port)
+                    .address("127.0.0.1")
 //                    .sslPort(8443)
                     .uriSpec(uriSpec);
 
-            builder.setLocalIpFilter(new LocalIpV4Filter());
+//            Logger.info("Installing IPV4 Filter");
+//            builder.setLocalIpFilter(new LocalIpV4Filter());
 
             thisInstance = builder.build();
 
@@ -172,6 +178,8 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             Logger.info("Service registered: " + serviceName + "/" + serviceId);
         }
 
+        findService(servicePath, serviceName);
+
         return serviceId;
     }
 
@@ -181,10 +189,11 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
     }
 
     public ServiceProvider<InstanceDetails> getServiceProvider(String queryServiceName) {
-        return getServiceDiscovery(servicePath)
-                    .serviceProviderBuilder()
+        findService(servicePath, serviceName);
+
+        return getServiceDiscovery(servicePath).serviceProviderBuilder()
                     .serviceName(queryServiceName)
-                    .providerStrategy(new RoundRobinStrategy())
+                    .providerStrategy(new RandomStrategy<InstanceDetails>())
                     .build();
     }
 
@@ -200,7 +209,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
                 return null;
             }
             instance = provider.getInstance();
-            Logger.info("Found instance at: " + instance.buildUriSpec());
+//            Logger.info("Found instance at: " + instance.buildUriSpec());
 
             CloseableUtils.closeQuietly(provider);
         } catch (Exception e) {
@@ -210,4 +219,13 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
         return instance;
     }
 
+    public Collection<ServiceInstance<InstanceDetails>> findService(String queryServicePath, String queryServiceName) {
+        Collection<ServiceInstance<InstanceDetails>> instances = new ArrayList<>();
+        try {
+            instances = getServiceDiscovery(queryServicePath).queryForInstances(queryServiceName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return instances;
+    }
 }
