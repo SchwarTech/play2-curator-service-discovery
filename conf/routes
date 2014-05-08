@@ -4,4 +4,4 @@
 
 # Home page
 GET     /                           controllers.Application.index()
-GET     /api/v1/echo                controllers.Application.echo()
+GET     /api/v1/echo                controllers.Application.echo(msg ?= "Hello World")

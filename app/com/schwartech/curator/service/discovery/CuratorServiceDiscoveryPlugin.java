@@ -1,5 +1,6 @@
 package com.schwartech.curator.service.discovery;
 
+import com.schwartech.curator.service.discovery.util.LocalIpV4Filter;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -147,13 +148,17 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             // in a real application, you'd have a convention of some kind for the URI layout
             UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}");
 
-            thisInstance = ServiceInstance.<InstanceDetails>builder()
+            ServiceInstanceBuilder builder = ServiceInstance.<InstanceDetails>builder()
                     .name(serviceName)
                     .payload(new InstanceDetails(description))
+//                    .address("127.0.0.1")
                     .port(port)
 //                    .sslPort(8443)
-                    .uriSpec(uriSpec)
-                    .build();
+                    .uriSpec(uriSpec);
+
+            builder.setLocalIpFilter(new LocalIpV4Filter());
+
+            thisInstance = builder.build();
 
             getServiceDiscovery(servicePath,thisInstance);
         } catch (Exception e) {

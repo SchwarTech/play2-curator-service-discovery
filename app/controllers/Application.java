@@ -16,10 +16,10 @@ public class Application extends Controller {
 
     public static String queryServiceName = "DEV:V1:ApacheCuratorXDiscovery";
 
-    public static Result echo() {
+    public static Result echo(String msg) {
         ObjectNode result = Json.newObject();
         result.put("status", "OK");
-        result.put("message", "Hello World");
+        result.put("message", msg);
         result.put("timestamp", System.currentTimeMillis());
         return ok(result);
     }
@@ -38,9 +38,14 @@ public class Application extends Controller {
                 wsResultsBody = "Service not found";
             } else {
                 InstanceDetails details = (InstanceDetails)instance.getPayload();
-                Logger.info("details.size: " + details.getSize());
+                Logger.info("ServiceInstance.details.size: " + details.getSize());
+                Logger.info("ServiceInstance.address: " + instance.getAddress());
+                Logger.info("ServiceInstance.serviceType: " + instance.getServiceType());
+                Logger.info("Calling: " + instance.buildUriSpec() + "/api/v1/echo?msg=" + instance.getId());
 
-                F.Promise<WS.Response> results = WS.url(instance.buildUriSpec() + "/api/v1/echo").get();
+
+//                WS.url
+                F.Promise<WS.Response> results = WS.url(instance.buildUriSpec() + "/api/v1/echo").setQueryParameter("msg", instance.getId()).get();
                 WS.Response theResponse = results.get(1500);
                 status = theResponse.getStatus();
                 wsResultsBody = theResponse.getBody();
@@ -50,7 +55,7 @@ public class Application extends Controller {
                 }
             }
         } catch (Exception e) {
-            Logger.error("Couldn't start provider", e);
+            Logger.error("Error calling service", e);
         } finally {
             CloseableUtils.closeQuietly(provider);
         }
