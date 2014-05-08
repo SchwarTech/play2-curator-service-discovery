@@ -157,7 +157,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
                     .name(serviceName)
                     .payload(new InstanceDetails(description))
                     .port(port)
-                    .address("127.0.0.1")
+//                    .address("127.0.0.1")
 //                    .sslPort(8443)
                     .uriSpec(uriSpec);
 

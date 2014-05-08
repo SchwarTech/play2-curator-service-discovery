@@ -46,7 +46,7 @@ public class Application extends Controller {
                 Logger.info("Exec:" + instance.buildUriSpec() + "/api/v1/echo?msg=" + instance.getId());
 
                 try {
-                    theResponse = callEchoService(instance.buildUriSpec() + "/api/v1/echo", instance.buildUriSpec() + "-" + instance.getId());
+                    theResponse = callEchoService(instance.buildUriSpec() + "/api/v1/echo", instance.buildUriSpec() + "/" + instance.getId());
                 } catch (ConnectException ce) {
                     provider.noteError(instance);
                 }
