@@ -178,7 +178,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             Logger.info("Service registered: " + serviceName + "/" + serviceId);
         }
 
-        findService(servicePath, serviceName);
+//        findServices(servicePath, serviceName);
 
         return serviceId;
     }
@@ -189,7 +189,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
     }
 
     public ServiceProvider<InstanceDetails> getServiceProvider(String queryServiceName) {
-        findService(servicePath, serviceName);
+//        findServices(servicePath, serviceName);
 
         return getServiceDiscovery(servicePath).serviceProviderBuilder()
                     .serviceName(queryServiceName)
@@ -219,7 +219,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
         return instance;
     }
 
-    public Collection<ServiceInstance<InstanceDetails>> findService(String queryServicePath, String queryServiceName) {
+    public Collection<ServiceInstance<InstanceDetails>> findServices(String queryServicePath, String queryServiceName) {
         Collection<ServiceInstance<InstanceDetails>> instances = new ArrayList<>();
         try {
             instances = getServiceDiscovery(queryServicePath).queryForInstances(queryServiceName);

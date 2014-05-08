@@ -6,6 +6,8 @@ import play.Application;
 import play.Configuration;
 import play.Play;
 
+import java.util.Collection;
+
 /**
  * Created by jeff on 5/7/14.
  */
@@ -44,6 +46,10 @@ public class CuratorServiceDiscovery {
 
     public static void unregister(String serviceName, String id) {
         getPlugin().unregister();
+    }
+
+    public static Collection<ServiceInstance<InstanceDetails>> findServices(String queryServicePath, String queryServiceName) {
+        return getPlugin().findServices(queryServicePath, queryServiceName);
     }
 
 }
