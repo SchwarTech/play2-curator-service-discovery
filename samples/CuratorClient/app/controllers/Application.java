@@ -19,15 +19,7 @@ public class Application extends Controller {
 
     public static String queryServiceName = "DEV:V1:ApacheCuratorXDiscovery";
 
-    public static Result echo(String msg) {
-        ObjectNode result = Json.newObject();
-        result.put("status", "OK");
-        result.put("message", msg);
-        result.put("timestamp", System.currentTimeMillis());
-        return ok(result);
-    }
-
-    private static WS.Response callEchoService(String url, String msg) throws ConnectException {
+    private static WS.Response callEchoService(String url, String msg) throws Exception {
         F.Promise<WS.Response> results = WS.url(url).setQueryParameter("msg", msg).get();
         return results.get(1500);
     }
@@ -47,7 +39,10 @@ public class Application extends Controller {
 
                 try {
                     theResponse = callEchoService(instance.buildUriSpec() + "/api/v1/echo", instance.buildUriSpec() + "/" + instance.getId());
-                } catch (ConnectException ce) {
+                    if (theResponse != null && theResponse.getStatus() >= 300) {
+                        provider.noteError(instance);
+                    }
+                } catch (Exception ce) {
                     provider.noteError(instance);
                 }
             }
@@ -72,7 +67,9 @@ public class Application extends Controller {
             Logger.info("Looking for '" + queryServiceName + "', count="+count);
             try {
                 WS.Response theResponse = getProviderAndExecute(queryServiceName);
-                if (theResponse != null) {
+                if (theResponse == null) {
+                    wsResultsBody = "Not Found";
+                } else {
                     status = theResponse.getStatus();
                     wsResultsBody = theResponse.getBody();
                     valid = true;
