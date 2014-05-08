@@ -1,24 +1,16 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.schwartech.curator.discovery.CuratorDiscovery;
-import com.schwartech.curator.discovery.CuratorDiscoveryPlugin;
-import models.InstanceDetails;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
+import com.schwartech.curator.service.discovery.CuratorServiceDiscovery;
+import com.schwartech.curator.service.discovery.InstanceDetails;
 import org.apache.curator.utils.CloseableUtils;
-import org.apache.curator.x.discovery.ServiceDiscovery;
-import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
-import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
-import play.*;
+import org.apache.curator.x.discovery.ServiceProvider;
+import play.Logger;
 import play.libs.F;
 import play.libs.Json;
 import play.libs.WS;
 import play.mvc.*;
-
-import java.util.Collection;
 
 public class Application extends Controller {
 
@@ -33,16 +25,40 @@ public class Application extends Controller {
     }
 
     public static Result index() {
-        ServiceInstance instance = CuratorDiscovery.getService(queryServiceName);
-        if (instance == null) {
-            return ok("NONE FOUND");
-        } else {
-            return ok(callService(instance.buildUriSpec()));
-        }
-    }
 
-    public static String callService(String uri) {
-        F.Promise<WS.Response> results = WS.url(uri + "/api/v1/echo").get();
-        return results.get(1500).getBody();
+        int status = 404;
+        String wsResultsBody = "";
+
+        ServiceProvider<InstanceDetails> provider = CuratorServiceDiscovery.getServiceProvider(queryServiceName);
+        try {
+            provider.start();
+
+            ServiceInstance<InstanceDetails> instance = provider.getInstance();
+            if (instance == null) {
+                wsResultsBody = "Service not found";
+            } else {
+                InstanceDetails details = (InstanceDetails)instance.getPayload();
+                Logger.info("details.size: " + details.getSize());
+
+                F.Promise<WS.Response> results = WS.url(instance.buildUriSpec() + "/api/v1/echo").get();
+                WS.Response theResponse = results.get(1500);
+                status = theResponse.getStatus();
+                wsResultsBody = theResponse.getBody();
+
+                if (status != 200) {
+                    provider.noteError(instance);
+                }
+            }
+        } catch (Exception e) {
+            Logger.error("Couldn't start provider", e);
+        } finally {
+            CloseableUtils.closeQuietly(provider);
+        }
+
+        if (status == 200) {
+            return ok(wsResultsBody);
+        } else {
+            return badRequest(wsResultsBody);
+        }
     }
 }

@@ -1,6 +1,5 @@
-package com.schwartech.curator.discovery;
+package com.schwartech.curator.service.discovery;
 
-import models.InstanceDetails;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -27,7 +26,7 @@ import java.util.Collection;
 /**
  * A Play plugin that facilitates Curator Discovery
  */
-public class CuratorDiscoveryPlugin extends Plugin {
+public class CuratorServiceDiscoveryPlugin extends Plugin {
 
     private final Application application;
     private String zooServers;
@@ -43,7 +42,7 @@ public class CuratorDiscoveryPlugin extends Plugin {
 
     private TestingServer mockZooKeeper;
 
-    public CuratorDiscoveryPlugin(Application application) {
+    public CuratorServiceDiscoveryPlugin(Application application) {
         this.application = application;
     }
 
@@ -55,15 +54,20 @@ public class CuratorDiscoveryPlugin extends Plugin {
      * Reads the configuration file and initializes com settings.
      */
     public void onStart() {
-        Configuration curatorDiscoveryConf = Configuration.root().getConfig("curator.discovery");
+        Configuration curatorDiscoveryConf = Configuration.root().getConfig("curator.service.discovery");
 
         if (curatorDiscoveryConf == null) {
             Logger.info("Curator Discovery settings not found.");
         } else {
-            serviceName = curatorDiscoveryConf.getString("service.name", "");
-            serviceDescription = curatorDiscoveryConf.getString("service.description", "");
-            servicePath = curatorDiscoveryConf.getString("service.path", "");
+            serviceName = curatorDiscoveryConf.getString("name", "Play2CuratorService");
+            serviceDescription = curatorDiscoveryConf.getString("description", "Play2 Curator Service");
+            servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
+            Logger.info("CuratorServiceDiscoveryPlugin Settings:");
+            Logger.info(" * serviceName: " + serviceName);
+            Logger.info(" * serviceDescription: " + serviceDescription);
+            Logger.info(" * servicePath: " + servicePath);
+            Logger.info(" * autoRegister: " + autoRegister);
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
@@ -114,7 +118,7 @@ public class CuratorDiscoveryPlugin extends Plugin {
         try {
             serviceDiscovery.start();
         } catch (Exception e) {
-            Logger.error("Error getting service discovery", e);
+            Logger.error("Error getting discovery discovery", e);
         }
 
         return serviceDiscovery;
@@ -147,16 +151,17 @@ public class CuratorDiscoveryPlugin extends Plugin {
                     .name(serviceName)
                     .payload(new InstanceDetails(description))
                     .port(port)
+//                    .sslPort(8443)
                     .uriSpec(uriSpec)
                     .build();
 
             getServiceDiscovery(servicePath,thisInstance);
         } catch (Exception e) {
-            Logger.error("Error registering service.", e);
+            Logger.error("Error registering discovery.", e);
         }
 
         if (thisInstance == null) {
-            Logger.error("Error registering service: " + serviceName);
+            Logger.error("Error registering discovery: " + serviceName);
         } else {
             serviceId = thisInstance.getId();
             Logger.info("Service registered: " + serviceName + "/" + serviceId);
@@ -170,15 +175,19 @@ public class CuratorDiscoveryPlugin extends Plugin {
         CloseableUtils.closeQuietly(client);
     }
 
+    public ServiceProvider<InstanceDetails> getServiceProvider(String queryServiceName) {
+        return getServiceDiscovery(servicePath)
+                    .serviceProviderBuilder()
+                    .serviceName(queryServiceName)
+                    .providerStrategy(new RoundRobinStrategy())
+                    .build();
+    }
+
     public ServiceInstance getService(String queryServiceName) {
         ServiceInstance instance = null;
 
         try {
-            ServiceProvider provider = getServiceDiscovery(servicePath)
-                    .serviceProviderBuilder()
-                        .serviceName(queryServiceName)
-                        .providerStrategy(new RoundRobinStrategy())
-                        .build();
+            ServiceProvider provider = getServiceProvider(queryServiceName);
 
             provider.start();
 
@@ -190,23 +199,10 @@ public class CuratorDiscoveryPlugin extends Plugin {
 
             CloseableUtils.closeQuietly(provider);
         } catch (Exception e) {
-            Logger.error("Error getting service provider", e);
+            Logger.error("Error getting discovery provider", e);
         }
 
         return instance;
     }
 
-    public Collection<ServiceInstance<InstanceDetails>> findService(String queryServicePath, String queryServiceName) {
-        Logger.debug("findService: " + queryServiceName);
-
-        Collection<ServiceInstance<InstanceDetails>> instances = new ArrayList<>();
-//        try
-//        {
-//            instances = getServiceDiscovery(queryServicePath).queryForInstances(queryServiceName);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-
-        return instances;
-    }
 }

@@ -1,1 +1,1 @@
-10000:com.schwartech.curator.discovery.CuratorDiscoveryPlugin
+10000:com.schwartech.curator.service.discovery.CuratorServiceDiscoveryPlugin
