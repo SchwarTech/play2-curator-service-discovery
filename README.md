@@ -28,23 +28,21 @@ How to use it in your Play 2 app?
 
 To enable the CSDP plugin in your Play 2 application, you have to add it as a dependency. Since it's hosted on my custom repository, you also have to add the url to this repository. Your **build.sbt**-file should look something like this:
 
+    libraryDependencies ++= Seq(
+        "com.schwartech" %% "play2-curator-service-discovery" % "1.0-SNAPSHOT"
+    )
 
-libraryDependencies ++= Seq(
-  "com.schwartech" %% "play2-curator-service-discovery" % "1.0-SNAPSHOT"
-)
-
-resolvers += (
-  "SchwarTech GitHub Repository" at "http://schwartech.github.com/m2repo/releases/"
-)
+    resolvers += (
+        "SchwarTech GitHub Repository" at "http://schwartech.github.com/m2repo/releases/"
+    )
 
 Properties Available in application.conf
 -----------
 
     #
     # Setup a mock zookeeper server on port 2181
+    # curator.service.discovery.zooServers=Mock
     #
-    #curator.service.discovery.zooServers=Mock
-
     curator.service.discovery.zooServers="localhost:2181"
 
     #
@@ -117,6 +115,7 @@ Demonstrates how to discover a service.  To run:
 Browse to http://localhost:9000
 
 Keep hitting refresh on your browser and the response will keep changing depending on which of the three services you started responds.
+
 Kill some of the CuratorService apps and see that they automatically get removed.
 
 Good luck :)
