@@ -26,7 +26,7 @@ Curator has a [Service Discovery](http://curator.apache.org/curator-x-discovery/
 How to use it in your Play 2 app?
 ==============
 
-To enable the CSDP plugin in your Play 2 application, you have to add it as a dependency. Since it's hosted on my custom repository, you also have to add the url to this repository. Your **build.sbt**-file should look something like this:
+To enable the CSDP plugin in your Play 2 application, you have to add it as a dependency. Since it's hosted on my custom repository, you also have to add the url to this repository. Your **build.sbt** file should look something like this:
 
     libraryDependencies ++= Seq(
         "com.schwartech" %% "play2-curator-service-discovery" % "1.0-SNAPSHOT"
@@ -90,15 +90,15 @@ Demonstrates how to setup and register an application using the Play 2 - Curator
 
     <new terminal>
     $ cd <to-directory>/samples/CuratorService
-    $ ./run 9001
+    $ ./run.sh 9001
 
     <new terminal>
     $ cd <to-directory>/samples/CuratorService
-    $ ./run 9002
+    $ ./run.sh 9002
 
     <new terminal>
     $ cd <to-directory>/samples/CuratorService
-    $ ./run 9003
+    $ ./run.sh 9003
 
 This starts three copies.  Browse to each one to initialize (http://localhost:9001)
 
@@ -110,7 +110,7 @@ Demonstrates how to discover a service.  To run:
 
     <new terminal>
     $ cd <to-directory>/samples/CuratorClient
-    $ ./run 9000
+    $ play run
 
 Browse to http://localhost:9000
 
