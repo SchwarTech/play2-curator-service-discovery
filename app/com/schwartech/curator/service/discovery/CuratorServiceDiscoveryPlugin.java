@@ -66,14 +66,25 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
 
-            int port = Configuration.root().getInt("http.port", 9000);
+            int port = 0;
+            String sPort = Configuration.root().getString("http.port", "9000");
+            try {
+                port = Integer.parseInt(sPort);
+            } catch (NumberFormatException nfe) {
+                sPort = Configuration.root().getString("https.port", "9443");
+                port = Integer.parseInt(sPort);
+            }
 
             Logger.info("CuratorServiceDiscoveryPlugin Settings:");
             Logger.info(" * serviceName: " + serviceName);
             Logger.info(" * serviceDescription: " + serviceDescription);
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
-            Logger.info(" * http.port: " + port);
+            if (port == 0) {
+                Logger.info(" * port not found");
+            } else {
+                Logger.info(" * port: " + port);
+            }
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
