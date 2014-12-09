@@ -73,7 +73,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             }
 
             sPort = Configuration.root().getString("https.port", "9443");
-            int sslPort = Integer.parseInt(sPort);
+            int sslPort;
             try {
                 sslPort = Integer.parseInt(sPort);
             } catch (NumberFormatException nfe) {
@@ -85,11 +85,8 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             Logger.info(" * serviceDescription: " + serviceDescription);
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
-            if (port == 0) {
-                Logger.info(" * port not found");
-            } else {
-                Logger.info(" * port: " + port);
-            }
+            Logger.info(" * sslPort: " + sslPort);
+            Logger.info(" * port: " + port);
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
