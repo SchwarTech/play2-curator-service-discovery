@@ -1,6 +1,5 @@
 package com.schwartech.curator.service.discovery;
 
-import com.schwartech.curator.service.discovery.util.LocalIpV4Filter;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
@@ -10,7 +9,6 @@ import org.apache.curator.utils.CloseableUtils;
 import org.apache.curator.x.discovery.*;
 import org.apache.curator.x.discovery.details.JsonInstanceSerializer;
 import org.apache.curator.x.discovery.strategies.RandomStrategy;
-import org.apache.curator.x.discovery.strategies.RoundRobinStrategy;
 import play.Application;
 import play.Configuration;
 import play.Logger;
@@ -66,13 +64,20 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
 
-            int port = 0;
+            int port;
             String sPort = Configuration.root().getString("http.port", "9000");
             try {
                 port = Integer.parseInt(sPort);
             } catch (NumberFormatException nfe) {
-                sPort = Configuration.root().getString("https.port", "9443");
-                port = Integer.parseInt(sPort);
+                port = 0;
+            }
+
+            sPort = Configuration.root().getString("https.port", "9443");
+            int sslPort = Integer.parseInt(sPort);
+            try {
+                sslPort = Integer.parseInt(sPort);
+            } catch (NumberFormatException nfe) {
+                sslPort = 0;
             }
 
             Logger.info("CuratorServiceDiscoveryPlugin Settings:");
@@ -100,7 +105,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             Logger.info("Curator Discovery settings found.  ZooKeeper servers: " + zooServers);
             if (autoRegister) {
-                register(serviceName, serviceDescription, port);
+                register(serviceName, serviceDescription, port, sslPort);
             }
         }
     }
@@ -157,7 +162,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
         return client;
     }
 
-    public String register(String serviceName, String description, int port) {
+    public String register(String serviceName, String description, int port, int sslPort) {
 
         try
         {
@@ -166,11 +171,16 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             ServiceInstanceBuilder builder = ServiceInstance.<InstanceDetails>builder()
                     .name(serviceName)
-                    .payload(new InstanceDetails(description))
-                    .port(port)
-//                    .address("127.0.0.1")
-//                    .sslPort(8443)
-                    .uriSpec(uriSpec);
+                    .payload(new InstanceDetails(description));
+
+            //Favor SSL
+            if (sslPort > 0) {
+                builder = builder.sslPort(sslPort);
+            } else {
+                builder = builder.port(port);
+            }
+
+            builder = builder.uriSpec(uriSpec);
 
 //            Logger.info("Installing IPV4 Filter");
 //            builder.setLocalIpFilter(new LocalIpV4Filter());

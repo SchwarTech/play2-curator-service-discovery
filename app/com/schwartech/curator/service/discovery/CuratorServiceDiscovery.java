@@ -3,7 +3,6 @@ package com.schwartech.curator.service.discovery;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.ServiceProvider;
 import play.Application;
-import play.Configuration;
 import play.Play;
 
 import java.util.Collection;
@@ -40,8 +39,8 @@ public class CuratorServiceDiscovery {
         return getPlugin().getServicePath();
     }
 
-    public static String register(String serviceName, String description, int port) {
-        return getPlugin().register(serviceName, description, port);
+    public static String register(String serviceName, String description, int port, int sslPort) {
+        return getPlugin().register(serviceName, description, port, sslPort);
     }
 
     public static void unregister(String serviceName, String id) {
