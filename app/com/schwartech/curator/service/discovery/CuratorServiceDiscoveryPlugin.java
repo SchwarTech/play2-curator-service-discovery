@@ -64,10 +64,18 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
 
+
+            Logger.info("CuratorServiceDiscoveryPlugin Settings:");
+            Logger.info(" * serviceName: " + serviceName);
+            Logger.info(" * serviceDescription: " + serviceDescription);
+            Logger.info(" * servicePath: " + servicePath);
+            Logger.info(" * autoRegister: " + autoRegister);
+
             int port;
             String sPort = Configuration.root().getString("http.port", "9000");
             try {
                 port = Integer.parseInt(sPort);
+                Logger.info(" * port: " + port);
             } catch (NumberFormatException nfe) {
                 port = 0;
             }
@@ -76,17 +84,14 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             int sslPort;
             try {
                 sslPort = Integer.parseInt(sPort);
+                Logger.info(" * sslPort: " + sslPort);
             } catch (NumberFormatException nfe) {
                 sslPort = 0;
             }
 
-            Logger.info("CuratorServiceDiscoveryPlugin Settings:");
-            Logger.info(" * serviceName: " + serviceName);
-            Logger.info(" * serviceDescription: " + serviceDescription);
-            Logger.info(" * servicePath: " + servicePath);
-            Logger.info(" * autoRegister: " + autoRegister);
-            Logger.info(" * sslPort: " + sslPort);
-            Logger.info(" * port: " + port);
+            if (port == 0 && sslPort == 0) {
+                Logger.error(" * port / sslPort not set");
+            }
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
@@ -164,7 +169,7 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
         try
         {
             // in a real application, you'd have a convention of some kind for the URI layout
-            UriSpec uriSpec = new UriSpec("{scheme}://{address}:{port}");
+            UriSpec uriSpec;
 
             ServiceInstanceBuilder builder = ServiceInstance.<InstanceDetails>builder()
                     .name(serviceName)
@@ -173,8 +178,10 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             //Favor SSL
             if (sslPort > 0) {
                 builder = builder.sslPort(sslPort);
+                uriSpec = new UriSpec("{scheme}://{address}:{ssl-port}");
             } else {
                 builder = builder.port(port);
+                uriSpec = new UriSpec("{scheme}://{address}:{port}");
             }
 
             builder = builder.uriSpec(uriSpec);
@@ -184,7 +191,9 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             thisInstance = builder.build();
 
-            getServiceDiscovery(servicePath,thisInstance);
+            Logger.info("* Curator.instance: " + thisInstance.buildUriSpec());
+
+            getServiceDiscovery(servicePath, thisInstance);
         } catch (Exception e) {
             Logger.error("Error registering discovery.", e);
         }

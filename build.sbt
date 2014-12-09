@@ -9,8 +9,8 @@ publishTo := Some(Resolver.file("http://schwartech.github.com/m2repo/releases/",
 
 libraryDependencies ++= Seq(
   cache,
-  "org.apache.curator" % "curator-x-discovery" % "2.4.2",
-  "org.apache.curator" % "curator-test" % "2.4.2"
+  "org.apache.curator" % "curator-x-discovery" % "2.7.0",
+  "org.apache.curator" % "curator-test" % "2.7.0"
 )
 
 play.Project.playJavaSettings
