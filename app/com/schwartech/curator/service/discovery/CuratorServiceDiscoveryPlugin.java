@@ -71,22 +71,26 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
 
-            int port;
-            String sPort = Configuration.root().getString("http.port", "9000");
-            try {
-                port = Integer.parseInt(sPort);
-                Logger.info(" * port: " + port);
-            } catch (NumberFormatException nfe) {
-                port = 0;
+            int port = 0;
+            String sPort = Configuration.root().getString("http.port");
+            if (sPort != null) {
+                try {
+                    port = Integer.parseInt(sPort);
+                    Logger.info(" * port: " + port);
+                } catch (NumberFormatException nfe) {
+                    Logger.debug("port is not valid");
+                }
             }
 
-            sPort = Configuration.root().getString("https.port", "9443");
-            int sslPort;
-            try {
-                sslPort = Integer.parseInt(sPort);
-                Logger.info(" * sslPort: " + sslPort);
-            } catch (NumberFormatException nfe) {
-                sslPort = 0;
+            sPort = Configuration.root().getString("https.port");
+            int sslPort = 0;
+            if (sPort != null) {
+                try {
+                    sslPort = Integer.parseInt(sPort);
+                    Logger.info(" * sslPort: " + sslPort);
+                } catch (NumberFormatException nfe) {
+                    Logger.debug("ssl-port is not valid");
+                }
             }
 
             if (port == 0 && sslPort == 0) {
