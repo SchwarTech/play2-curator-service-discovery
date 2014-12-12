@@ -93,10 +93,6 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
                 }
             }
 
-            if (port == 0 && sslPort == 0) {
-                Logger.error(" * port / sslPort not set");
-            }
-
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             if (zooServers.toLowerCase().contains("mock")) {
                 try {
@@ -111,7 +107,11 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             Logger.info("Curator Discovery settings found.  ZooKeeper servers: " + zooServers);
             if (autoRegister) {
-                register(serviceName, serviceDescription, port, sslPort);
+                if (port == 0 && sslPort == 0) {
+                    Logger.error("Can't register service.  Port / sslPort not set");
+                } else {
+                    register(serviceName, serviceDescription, port, sslPort);
+                }
             }
         }
     }
