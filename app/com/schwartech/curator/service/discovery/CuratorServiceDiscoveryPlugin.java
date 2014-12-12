@@ -71,29 +71,9 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
 
-            int port = 0;
-            String sPort = Configuration.root().getString("http.port");
-            if (sPort != null) {
-                try {
-                    port = Integer.parseInt(sPort);
-                    Logger.info(" * port: " + port);
-                } catch (NumberFormatException nfe) {
-                    Logger.debug("port is not valid");
-                }
-            }
-
-            sPort = Configuration.root().getString("https.port");
-            int sslPort = 0;
-            if (sPort != null) {
-                try {
-                    sslPort = Integer.parseInt(sPort);
-                    Logger.info(" * sslPort: " + sslPort);
-                } catch (NumberFormatException nfe) {
-                    Logger.debug("ssl-port is not valid");
-                }
-            }
-
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
+            Logger.info(" * zooKeeper servers: " + zooServers);
+
             if (zooServers.toLowerCase().contains("mock")) {
                 try {
                     mockZooKeeper = new TestingServer(2181);
@@ -107,6 +87,27 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 
             Logger.info("Curator Discovery settings found.  ZooKeeper servers: " + zooServers);
             if (autoRegister) {
+                int port = 0;
+                String sPort = Configuration.root().getString("http.port");
+                if (sPort != null) {
+                    try {
+                        port = Integer.parseInt(sPort);
+                        Logger.info(" * port: " + port);
+                    } catch (NumberFormatException nfe) {
+                        Logger.debug("port is not valid");
+                    }
+                }
+
+                sPort = Configuration.root().getString("https.port");
+                int sslPort = 0;
+                if (sPort != null) {
+                    try {
+                        sslPort = Integer.parseInt(sPort);
+                        Logger.info(" * sslPort: " + sslPort);
+                    } catch (NumberFormatException nfe) {
+                        Logger.debug("ssl-port is not valid");
+                    }
+                }
                 if (port == 0 && sslPort == 0) {
                     Logger.error("Can't register service.  Port / sslPort not set");
                 } else {
