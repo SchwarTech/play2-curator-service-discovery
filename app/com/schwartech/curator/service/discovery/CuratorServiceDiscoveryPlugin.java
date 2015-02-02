@@ -38,6 +38,10 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
     private String serviceName;
     private String serviceDescription;
     private String servicePath;
+
+    private String uriSpecParam;
+    private String uriSpecSslParam;
+
     private ServiceInstance<InstanceDetails> thisInstance;
 
     private TestingServer mockZooKeeper;
@@ -63,13 +67,16 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             serviceDescription = curatorDiscoveryConf.getString("description", "Play2 Curator Service");
             servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
             autoRegister = curatorDiscoveryConf.getBoolean("autoregister", Boolean.TRUE);
-
+            uriSpecParam = curatorDiscoveryConf.getString("uri.spec", "{scheme}://{address}:{port}");
+            uriSpecSslParam = curatorDiscoveryConf.getString("ssl.uri.spec", "{scheme}://{address}:{ssl-port}");
 
             Logger.info("CuratorServiceDiscoveryPlugin Settings:");
             Logger.info(" * serviceName: " + serviceName);
             Logger.info(" * serviceDescription: " + serviceDescription);
             Logger.info(" * servicePath: " + servicePath);
             Logger.info(" * autoRegister: " + autoRegister);
+            Logger.info(" * uriSpec: " + uriSpecParam);
+            Logger.info(" * uriSpecSsl: " + uriSpecSslParam);
 
             zooServers = curatorDiscoveryConf.getString("zooServers", "localhost:2181");
             Logger.info(" * zooKeeper servers: " + zooServers);
@@ -183,10 +190,10 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
             //Favor SSL
             if (sslPort > 0) {
                 builder = builder.sslPort(sslPort);
-                uriSpec = new UriSpec("{scheme}://{address}:{ssl-port}");
+                uriSpec = new UriSpec(uriSpecSslParam);
             } else {
                 builder = builder.port(port);
-                uriSpec = new UriSpec("{scheme}://{address}:{port}");
+                uriSpec = new UriSpec(uriSpecParam);
             }
 
             builder = builder.uriSpec(uriSpec);
@@ -195,7 +202,6 @@ public class CuratorServiceDiscoveryPlugin extends Plugin {
 //            builder.setLocalIpFilter(new LocalIpV4Filter());
 
             thisInstance = builder.build();
-
             Logger.info("* Curator.instance: " + thisInstance.buildUriSpec());
 
             getServiceDiscovery(servicePath, thisInstance);

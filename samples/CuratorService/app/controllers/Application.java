@@ -5,6 +5,7 @@ import com.schwartech.curator.service.discovery.CuratorServiceDiscovery;
 import com.schwartech.curator.service.discovery.InstanceDetails;
 import org.apache.curator.x.discovery.ServiceInstance;
 import play.Configuration;
+import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -23,12 +24,16 @@ public class Application extends Controller {
     }
 
     public static Result index() {
-
         Configuration curatorDiscoveryConf = Configuration.root().getConfig("curator.service.discovery");
         String serviceName = curatorDiscoveryConf.getString("name", "Play2CuratorService");
         String servicePath = curatorDiscoveryConf.getString("path", "/play2-curator-service-discovery-plugin");
 
+        Logger.info("Registering service: " + serviceName + ", path: " + servicePath);
+
         Collection<ServiceInstance<InstanceDetails>> instances = CuratorServiceDiscovery.findServices(servicePath, serviceName);
+
+        Logger.info("Registered service: " + serviceName + ", path: " + servicePath);
+
         return ok(instances.toString());
     }
 }

@@ -39,11 +39,13 @@ public class Application extends Controller {
 
                 try {
                     theResponse = callEchoService(instance.buildUriSpec() + "/api/v1/echo", instance.buildUriSpec() + "/" + instance.getId());
+                    Logger.info(" * response: " + theResponse);
                     if (theResponse != null && theResponse.getStatus() >= 300) {
                         provider.noteError(instance);
                     }
                 } catch (Exception ce) {
                     provider.noteError(instance);
+                    Logger.error(" * provider error", ce);
                 }
             }
         } catch (Exception e) {
@@ -64,6 +66,7 @@ public class Application extends Controller {
         boolean valid = false;
         while (!valid && count < 3) {
             count++;
+            Logger.info("");
             Logger.info("Looking for '" + queryServiceName + "', count="+count);
             try {
                 WS.Response theResponse = getProviderAndExecute(queryServiceName);
